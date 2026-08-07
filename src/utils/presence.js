@@ -4,20 +4,20 @@ const updatePresence = async (client) => {
   if (!client.user) return;
 
   const defaultText = `Your Server 👀 | ${client.guilds.cache.size} servers`;
-  const activities = [
-    {
-      name: defaultText,
-      type: ActivityType.Watching
-    }
-  ];
+  const activities = [];
 
   const globalBio = client.storage?.getSetting('global', 'botActivityText');
   if (globalBio) {
-    activities.unshift({
-      name: globalBio,
-      type: ActivityType.Custom
+    activities.push({
+      type: ActivityType.Custom,
+      state: globalBio
     });
   }
+
+  activities.push({
+    name: defaultText,
+    type: ActivityType.Watching
+  });
 
   return client.user.setPresence({
     activities,
