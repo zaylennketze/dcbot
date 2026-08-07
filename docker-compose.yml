@@ -1,0 +1,21 @@
+services:
+  dcbot:
+    build: .
+    restart: unless-stopped
+    environment:
+      BOT_TOKEN: ${BOT_TOKEN}
+      CLIENT_ID: ${CLIENT_ID}
+      GUILD_ID: ${GUILD_ID}
+      PREFIX: ${PREFIX:-!}
+      OWNER_IDS: ${OWNER_IDS}
+      MUTE_ROLE: ${MUTE_ROLE:-Muted}
+      WELCOME_CHANNEL_ID: ${WELCOME_CHANNEL_ID}
+      LOG_CHANNEL_ID: ${LOG_CHANNEL_ID}
+      STARTING_BALANCE: ${STARTING_BALANCE:-100}
+      DAILY_AMOUNT: ${DAILY_AMOUNT:-250}
+      GAMBLE_MIN: ${GAMBLE_MIN:-10}
+      GAMBLE_MAX: ${GAMBLE_MAX:-1000}
+      TICKET_CATEGORY_ID: ${TICKET_CATEGORY_ID}
+      TICKET_LOG_CHANNEL_ID: ${TICKET_LOG_CHANNEL_ID}
+    volumes:
+      - ./data:/usr/src/app/data
