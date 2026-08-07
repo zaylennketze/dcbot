@@ -4,7 +4,7 @@ const { updatePresence } = require('../utils/presence');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('setbio')
-    .setDescription('Set the bot activity/bio text')
+    .setDescription('Set the bot activity/bio text (owner only)')
     .addStringOption((option) =>
       option
         .setName('text')
