@@ -46,6 +46,7 @@ This project includes built-in process recovery handlers. For a truly persistent
    MUTE_ROLE=Muted
    WELCOME_CHANNEL_ID=welcome-channel-id
    LOG_CHANNEL_ID=log-channel-id
+   AUTOMOD_LOG_CHANNEL_ID=automod-log-channel-id
    TICKET_CATEGORY_ID=ticket-category-id
    ```
 
@@ -67,6 +68,8 @@ This project includes built-in process recovery handlers. For a truly persistent
 - Economy: balance, daily, pay, gamble, leaderboard
 - Music: play, skip, stop, queue, auto-reconnect
 - Ticketing: open and close support tickets
+- AutoMod rule management via `/automod create`, `/automod delete`, and `/automod list`
+- AutoMod action logging to the configured log channel
 - Welcome and goodbye messages
 - File-based persistence for economy, warnings, and tickets
 - Robust event logging and permission checks
