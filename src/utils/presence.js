@@ -10,6 +10,7 @@ const updatePresence = async (client) => {
   if (globalBio) {
     activities.push({
       type: ActivityType.Custom,
+      name: 'Custom Status',
       state: globalBio
     });
   }
