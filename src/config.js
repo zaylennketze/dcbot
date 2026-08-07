@@ -42,6 +42,7 @@ module.exports = {
   moderation: {
     muteRole: process.env.MUTE_ROLE || fileConfig.moderation?.muteRole || 'Muted',
     welcomeChannelId: process.env.WELCOME_CHANNEL_ID || fileConfig.moderation?.welcomeChannelId || '',
+    departureChannelId: process.env.DEPARTURE_CHANNEL_ID || fileConfig.moderation?.departureChannelId || '',
     logChannelId: process.env.LOG_CHANNEL_ID || fileConfig.moderation?.logChannelId || '',
     automodLogChannelId: process.env.AUTOMOD_LOG_CHANNEL_ID || fileConfig.moderation?.automodLogChannelId || fileConfig.moderation?.logChannelId || '',
     createDefaultAutoModRule: parseBoolean(process.env.CREATE_AUTOMOD_DEFAULT_RULE, fileConfig.moderation?.createDefaultAutoModRule || false)
