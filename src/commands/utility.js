@@ -38,21 +38,24 @@ module.exports = {
 
     switch (subcommand) {
       case 'ping': {
+        const wsPing = Math.round(interaction.client.ws.ping);
+        const latency = wsPing;
         const embed = new EmbedBuilder()
           .setTitle('🏓 Pong!')
           .setColor('#00B0F4')
-          .setDescription([
-            `• Latency: ${Date.now() - interaction.createdTimestamp}ms`,
-            `• API heartbeat: ${Math.round(interaction.client.ws.ping)}ms`,
-            `• Server Node: US-14e7`,
-            `• Host: KVM/QEMU (Standard PC (i440FX + PIIX, 1996) pc-i440fx-10.1)`,
-            `• OS: Ubuntu 20.04.3 LTS x86_64`,
-            `• Kernel: 6.8.0-71-generic`,
-            `• CPU: Intel Xeon E5-2697 v2 (48) @ 2.699GHz`,
-            `• GPU: 00:02.0 Vendor 1234 Device 1112`,
-            `• Memory: 1028GB Max`,
-            `• Status: Online :white_check_mark:`
-          ].join('\n'));
+          .addFields(
+            { name: 'Latency', value: `${latency}ms`, inline: true },
+            { name: 'API heartbeat', value: `${wsPing}ms`, inline: true },
+            { name: 'Server Node', value: 'US-14e7', inline: true },
+            { name: 'Host', value: 'KVM/QEMU (Standard PC (i440FX + PIIX, 1996) pc-i440fx-10.1)', inline: false },
+            { name: 'OS', value: 'Ubuntu 20.04.3 LTS x86_64', inline: true },
+            { name: 'Kernel', value: '6.8.0-71-generic', inline: true },
+            { name: 'CPU', value: 'Intel Xeon E5-2697 v2 (48) @ 2.699GHz', inline: false },
+            { name: 'GPU', value: '00:02.0 Vendor 1234 Device 1112', inline: true },
+            { name: 'Memory', value: '1028GB Max', inline: true },
+            { name: 'Status', value: 'Online :white_check_mark:', inline: false }
+          )
+          .setFooter({ text: 'Utility ping report' });
 
         return interaction.reply({ embeds: [embed] });
       }
