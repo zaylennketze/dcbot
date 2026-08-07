@@ -1,5 +1,5 @@
 const { PermissionsBitField } = require('discord.js');
-const config = require('../config');
+const { updatePresence } = require('../utils/presence');
 
 module.exports = {
   name: 'ready',
@@ -7,26 +7,20 @@ module.exports = {
   async execute(client) {
     console.log(`Logged in as ${client.user.tag}`);
     try {
-      const commands = [...client.commands.keys()].join(', ');
-      const activityText = commands.length > 90
-        ? `Use ${config.prefix}help for commands`
-        : `Commands: ${commands}`;
-
-      await client.user.setActivity(activityText, {
-        type: 'Listening'
-      });
+      await updatePresence(client);
     } catch (error) {
       console.warn('Failed to set activity:', error);
     }
 
-    const startupMessage = '✅ I am online and running!';
+    const startupMessage = '✅ I am online and running! Use /help for help!';
     for (const guild of client.guilds.cache.values()) {
       try {
+        const botMember = guild.members.me;
+        if (!botMember) continue;
+
         const targetChannel = guild.channels.cache
           .filter((channel) => channel.isTextBased())
           .find((channel) => {
-            const botMember = guild.members.me;
-            if (!botMember) return false;
             const perms = channel.permissionsFor(botMember);
             return perms?.has([PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages]);
           });

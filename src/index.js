@@ -72,6 +72,29 @@ client.distube
     console.error(error);
   });
 
+const sendShutdownMessage = async () => {
+  const shutdownMessage = '❌ Unexpected Error: The bot is shutting down. Please check console for details.';
+  for (const guild of client.guilds.cache.values()) {
+    try {
+      const botMember = guild.members.me;
+      if (!botMember) continue;
+
+      const targetChannel = guild.channels.cache
+        .filter((channel) => channel.isTextBased())
+        .find((channel) => {
+          const perms = channel.permissionsFor(botMember);
+          return perms?.has([PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages]);
+        });
+
+      if (targetChannel) {
+        await targetChannel.send(shutdownMessage);
+      }
+    } catch (error) {
+      console.warn(`Failed to send shutdown message in guild ${guild.id}:`, error.message);
+    }
+  }
+};
+
 process.on('unhandledRejection', (reason) => {
   console.error('Unhandled Promise Rejection:', reason);
 });
@@ -80,14 +103,20 @@ process.on('uncaughtException', (error) => {
   console.error('Uncaught Exception:', error);
 });
 
-process.on('SIGINT', () => {
+process.on('SIGINT', async () => {
   console.log('SIGINT received, shutting down gracefully.');
+  await sendShutdownMessage().catch((error) => {
+    console.warn('Failed to send shutdown messages:', error);
+  });
   client.destroy();
   process.exit(0);
 });
 
-process.on('SIGTERM', () => {
+process.on('SIGTERM', async () => {
   console.log('SIGTERM received, shutting down gracefully.');
+  await sendShutdownMessage().catch((error) => {
+    console.warn('Failed to send shutdown messages:', error);
+  });
   client.destroy();
   process.exit(0);
 });

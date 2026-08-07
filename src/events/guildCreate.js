@@ -5,10 +5,17 @@ const {
   AutoModerationRuleKeywordPresetType
 } = require('discord.js');
 const config = require('../config');
+const { updatePresence } = require('../utils/presence');
 
 module.exports = {
   name: 'guildCreate',
   async execute(guild, client) {
+    try {
+      await updatePresence(client);
+    } catch (error) {
+      console.warn('Failed to update presence after guild join:', error.message);
+    }
+
     if (!config.moderation.createDefaultAutoModRule) return;
 
     try {
