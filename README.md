@@ -11,12 +11,15 @@ A modular Discord bot scaffold with moderation, utility, economy, music, ticketi
 
 2. Fill in your bot token, client ID, and guild ID in `src/config.json`.
 
-3. Install dependencies:
+3. Add the bot to your server using the invite link:
+   <https://discord.com/api/oauth2/authorize?client_id=1535337566692180088&permissions=8&scope=bot+applications.commands>
+
+4. Install dependencies:
    ```bash
    npm install
    ```
 
-3. Register slash commands:
+5. Register slash commands:
    ```bash
    npm run deploy
    ```
