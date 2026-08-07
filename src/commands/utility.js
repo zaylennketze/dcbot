@@ -22,8 +22,8 @@ module.exports = {
       subcommand
         .setName('announce')
         .setDescription('Send an announcement to announcement-style channels')
-        .addChannelOption((option) => option.setName('channel').setDescription('Optional channel to announce in'))
         .addStringOption((option) => option.setName('message').setDescription('Announcement message').setRequired(true))
+        .addChannelOption((option) => option.setName('channel').setDescription('Optional channel to announce in'))
     )
     .addSubcommand((subcommand) =>
       subcommand
