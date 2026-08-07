@@ -9,7 +9,7 @@ A modular Discord bot scaffold with moderation, utility, economy, music, ticketi
    cp src/config.example.json src/config.json
    ```
 
-2. Fill in your bot token in `src/config.json` or set `BOT_TOKEN` in `.env`.
+2. Fill in your bot token in `src/config.json` or set `BOT_TOKEN` in `.env`. Other configuration values are optional, so the bot can join and work in any server without preset channel or guild IDs.
 
 3. Add the bot to your server using the invite link:
    <https://discord.com/api/oauth2/authorize?client_id=1535337566692180088&permissions=8&scope=bot+applications.commands>
@@ -24,8 +24,7 @@ A modular Discord bot scaffold with moderation, utility, economy, music, ticketi
    npm run deploy
    ```
 
-   - If `GUILD_ID` is set, commands are deployed immediately to that guild.
-   - If `GUILD_ID` is not set, commands are registered globally and can be used in any server the bot joins.
+   Commands are registered globally, so the bot can be used in any server it joins.
 
 5. Start the bot:
    ```bash
@@ -44,11 +43,14 @@ This project includes built-in process recovery handlers. For a truly persistent
    OWNER_IDS=your-user-id
    PREFIX=!
    MUTE_ROLE=Muted
-   WELCOME_CHANNEL_ID=welcome-channel-id
-   LOG_CHANNEL_ID=log-channel-id
-   AUTOMOD_LOG_CHANNEL_ID=automod-log-channel-id
-   TICKET_CATEGORY_ID=ticket-category-id
+   WELCOME_CHANNEL_ID=
+   LOG_CHANNEL_ID=
+   AUTOMOD_LOG_CHANNEL_ID=
+   TICKET_CATEGORY_ID=
    ```
+
+   Leave channel IDs blank to let the bot operate without requiring server-specific setup.
+
 
 2. Build and start with Docker Compose:
    ```bash
