@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { Client, Collection, GatewayIntentBits, Partials } = require('discord.js');
+const { Client, Collection, GatewayIntentBits, Partials, PermissionsBitField } = require('discord.js');
 const { DisTube } = require('distube');
 const config = require('./config');
 const Storage = require('./storage');
@@ -103,23 +103,17 @@ process.on('uncaughtException', (error) => {
   console.error('Uncaught Exception:', error);
 });
 
-process.on('SIGINT', async () => {
-  console.log('SIGINT received, shutting down gracefully.');
+const gracefulShutdown = async (signal) => {
+  console.log(`${signal} received, shutting down gracefully.`);
   await sendShutdownMessage().catch((error) => {
     console.warn('Failed to send shutdown messages:', error);
   });
-  client.destroy();
+  await client.destroy();
   process.exit(0);
-});
+};
 
-process.on('SIGTERM', async () => {
-  console.log('SIGTERM received, shutting down gracefully.');
-  await sendShutdownMessage().catch((error) => {
-    console.warn('Failed to send shutdown messages:', error);
-  });
-  client.destroy();
-  process.exit(0);
-});
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 
 client.login(config.token).catch((error) => {
   console.error('Failed to login:', error);
