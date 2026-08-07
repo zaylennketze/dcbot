@@ -21,7 +21,7 @@ const updatePresence = async (client) => {
 
   return client.user.setPresence({
     activities,
-    status: 'dnd'
+    status: 'do_not_disturb'
   });
 };
 
