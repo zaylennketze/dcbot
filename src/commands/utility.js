@@ -42,7 +42,7 @@ module.exports = {
         const latency = wsPing;
         const embed = new EmbedBuilder()
           .setTitle('Bot Status')
-          .setDescription('Ping and server status overview')
+          .setDescription('Ping and host server status overview')
           .setColor('#00B0F4')
           .addFields(
             { name: 'Latency', value: `${latency}ms`, inline: true },
