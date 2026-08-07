@@ -5,7 +5,6 @@ module.exports = {
     .setName('utility')
     .setDescription('Utility commands: ping, serverinfo, userinfo, avatar, announce, poll')
     .addSubcommand((subcommand) => subcommand.setName('ping').setDescription('Check bot latency'))
-    .addSubcommand((subcommand) => subcommand.setName('setlogchannel').setDescription('Set the bot logs channel').addChannelOption((option) => option.setName('channel').setDescription('Channel for bot status logs').setRequired(true)))
     .addSubcommand((subcommand) => subcommand.setName('serverinfo').setDescription('Get server information'))
     .addSubcommand((subcommand) =>
       subcommand
@@ -22,8 +21,8 @@ module.exports = {
     .addSubcommand((subcommand) =>
       subcommand
         .setName('announce')
-        .setDescription('Send an announcement in a channel')
-        .addChannelOption((option) => option.setName('channel').setDescription('Channel to announce in').setRequired(true))
+        .setDescription('Send an announcement to announcement-style channels')
+        .addChannelOption((option) => option.setName('channel').setDescription('Optional channel to announce in'))
         .addStringOption((option) => option.setName('message').setDescription('Announcement message').setRequired(true))
     )
     .addSubcommand((subcommand) =>
@@ -61,24 +60,6 @@ module.exports = {
 
         return interaction.reply({ embeds: [embed] });
       }
-      case 'setlogchannel': {
-        if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageGuild)) {
-          return interaction.reply({ content: 'You need the Manage Server permission to set the bot logs channel.', ephemeral: true });
-        }
-
-        const channel = interaction.options.getChannel('channel');
-        if (!channel.isTextBased()) {
-          return interaction.reply({ content: 'Please select a text channel.', ephemeral: true });
-        }
-
-        interaction.client.storage.setSetting(interaction.guild.id, 'botLogChannelId', channel.id);
-        const confirmEmbed = new EmbedBuilder()
-          .setTitle('Bot Logs Channel Set')
-          .setDescription(`Bot startup/shutdown logs will now be sent to ${channel}.`)
-          .setColor('#00B0F4');
-
-        return interaction.reply({ embeds: [confirmEmbed], ephemeral: true });
-      }
       case 'serverinfo': {
         const guild = interaction.guild;
         const embed = new EmbedBuilder()
@@ -112,12 +93,48 @@ module.exports = {
       case 'announce': {
         const channel = interaction.options.getChannel('channel');
         const message = interaction.options.getString('message');
-        if (!channel.isTextBased()) {
-          return interaction.reply({ content: 'Please provide a text channel.', ephemeral: true });
-        }
-        await channel.send({ content: `📢 Announcement:
+        const announcementKeywords = ['news', 'announce', 'announcement', 'announcements', 'updates', 'broadcast', 'bulletin', 'bulletins'];
+
+        const sendToChannel = async (targetChannel) => {
+          if (!targetChannel?.isTextBased()) return false;
+          await targetChannel.send({ content: `📢 Announcement:
 ${message}` });
-        return interaction.reply({ content: `Announcement sent to ${channel}.`, ephemeral: true });
+          return true;
+        };
+
+        if (channel) {
+          if (!channel.isTextBased()) {
+            return interaction.reply({ content: 'Please provide a text-based channel.', ephemeral: true });
+          }
+          await sendToChannel(channel);
+          return interaction.reply({ content: `Announcement sent to ${channel}.`, ephemeral: true });
+        }
+
+        const announcementChannels = interaction.guild.channels.cache.filter((targetChannel) => {
+          if (!targetChannel.isTextBased()) return false;
+          const name = targetChannel.name?.toLowerCase() || '';
+          return announcementKeywords.some((keyword) => name.includes(keyword));
+        });
+
+        if (!announcementChannels.size) {
+          return interaction.reply({ content: 'No announcement-style channel found in this server. Please specify a channel or create one with a name like news or announcements.', ephemeral: true });
+        }
+
+        const sentChannels = [];
+        for (const targetChannel of announcementChannels.values()) {
+          try {
+            await sendToChannel(targetChannel);
+            sentChannels.push(`<#${targetChannel.id}>`);
+          } catch {
+            // ignore send failure per channel
+          }
+        }
+
+        if (!sentChannels.length) {
+          return interaction.reply({ content: 'I found announcement-style channels, but could not send to any of them. Check my channel permissions.', ephemeral: true });
+        }
+
+        return interaction.reply({ content: `Announcement sent to ${sentChannels.join(', ')}.`, ephemeral: true });
       }
       case 'poll': {
         const question = interaction.options.getString('question');

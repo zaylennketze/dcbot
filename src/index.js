@@ -39,27 +39,32 @@ if (isTerminalSay && !terminalSayMessage) {
 }
 client.skipStartupEmbed = sendAndExitMode;
 
-const getRandomTextChannel = (guild) => {
-  const available = guild.channels.cache.filter((channel) => {
+const getAnnouncementChannels = (guild) => {
+  const announcementKeywords = ['news', 'announce', 'announcement', 'announcements', 'updates', 'broadcast', 'bulletin', 'bulletins'];
+  return guild.channels.cache.filter((channel) => {
     if (!channel.isTextBased()) return false;
     const perms = guild.members.me?.permissionsIn(channel);
-    return perms?.has([PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages]);
+    if (!perms?.has([PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages])) return false;
+    const name = channel.name?.toLowerCase() || '';
+    return announcementKeywords.some((keyword) => name.includes(keyword));
   });
-  return available.size ? available.random() : null;
 };
 
 const sendTerminalBroadcast = async (message) => {
-  const broadcastMessage = `**SERVER**: ${message}`;
+  const broadcastMessage = `**BROADCAST (SERVERWIDE)**: ${message}`;
   for (const guild of client.guilds.cache.values()) {
-    const channel = getRandomTextChannel(guild);
-    if (!channel) {
-      console.warn(`No available text channel to send terminal message in guild ${guild.id}`);
+    const announcementChannels = getAnnouncementChannels(guild);
+    if (!announcementChannels.size) {
+      console.warn(`No announcement-style channel found in guild ${guild.id}`);
       continue;
     }
-    try {
-      await channel.send({ content: broadcastMessage });
-    } catch (error) {
-      console.warn(`Failed to send terminal message in guild ${guild.id}:`, error.message);
+
+    for (const channel of announcementChannels.values()) {
+      try {
+        await channel.send({ content: broadcastMessage });
+      } catch (error) {
+        console.warn(`Failed to send terminal message in guild ${guild.id} channel ${channel.id}:`, error.message);
+      }
     }
   }
 };
