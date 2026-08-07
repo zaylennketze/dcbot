@@ -37,8 +37,25 @@ module.exports = {
     const subcommand = interaction.options.getSubcommand();
 
     switch (subcommand) {
-      case 'ping':
-        return interaction.reply(`🏓 Pong! Latency is ${Date.now() - interaction.createdTimestamp}ms. API heartbeat ${Math.round(interaction.client.ws.ping)}ms. Server Node: US-14e7, Host: KVM/QEMU (Standard PC (i440FX + PIIX, 1996) pc-i440fx-10.1), OS: Ubuntu 20.04.3 LTS x86_64, Kernel: 6.8.0-71-generic, CPU: Intel Xeon E5-2697 v2 (48) @ 2.699GHz, GPU: 00:02.0 Vendor 1234 Device 1112, Memory: 1028GB Max. Status: Online :white_check_mark:`);
+      case 'ping': {
+        const embed = new EmbedBuilder()
+          .setTitle('🏓 Pong!')
+          .setColor('#00B0F4')
+          .setDescription([
+            `• Latency: ${Date.now() - interaction.createdTimestamp}ms`,
+            `• API heartbeat: ${Math.round(interaction.client.ws.ping)}ms`,
+            `• Server Node: US-14e7`,
+            `• Host: KVM/QEMU (Standard PC (i440FX + PIIX, 1996) pc-i440fx-10.1)`,
+            `• OS: Ubuntu 20.04.3 LTS x86_64`,
+            `• Kernel: 6.8.0-71-generic`,
+            `• CPU: Intel Xeon E5-2697 v2 (48) @ 2.699GHz`,
+            `• GPU: 00:02.0 Vendor 1234 Device 1112`,
+            `• Memory: 1028GB Max`,
+            `• Status: Online :white_check_mark:`
+          ].join('\n'));
+
+        return interaction.reply({ embeds: [embed] });
+      }
       case 'serverinfo': {
         const guild = interaction.guild;
         const embed = new EmbedBuilder()
