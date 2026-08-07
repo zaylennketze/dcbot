@@ -41,7 +41,8 @@ module.exports = {
         const wsPing = Math.round(interaction.client.ws.ping);
         const latency = wsPing;
         const embed = new EmbedBuilder()
-          .setTitle('🏓 Pong!')
+          .setTitle('Bot Status')
+          .setDescription('Ping and server status overview')
           .setColor('#00B0F4')
           .addFields(
             { name: 'Latency', value: `${latency}ms`, inline: true },
