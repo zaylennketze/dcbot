@@ -27,8 +27,6 @@ const parseArray = (value, fallback) => {
 
 module.exports = {
   token: process.env.BOT_TOKEN || fileConfig.token,
-  clientId: process.env.CLIENT_ID || fileConfig.clientId,
-  guildId: process.env.GUILD_ID || fileConfig.guildId,
   prefix: process.env.PREFIX || fileConfig.prefix || '!',
   ownerIds: parseArray(process.env.OWNER_IDS, fileConfig.ownerIds || []),
   moderation: {

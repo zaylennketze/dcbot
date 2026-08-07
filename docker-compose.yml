@@ -4,8 +4,6 @@ services:
     restart: unless-stopped
     environment:
       BOT_TOKEN: ${BOT_TOKEN}
-      CLIENT_ID: ${CLIENT_ID}
-      GUILD_ID: ${GUILD_ID}
       PREFIX: ${PREFIX:-!}
       OWNER_IDS: ${OWNER_IDS}
       MUTE_ROLE: ${MUTE_ROLE:-Muted}

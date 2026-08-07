@@ -9,7 +9,7 @@ A modular Discord bot scaffold with moderation, utility, economy, music, ticketi
    cp src/config.example.json src/config.json
    ```
 
-2. Fill in your bot token, client ID, and guild ID in `src/config.json`.
+2. Fill in your bot token in `src/config.json` or set `BOT_TOKEN` in `.env`.
 
 3. Add the bot to your server using the invite link:
    <https://discord.com/api/oauth2/authorize?client_id=1535337566692180088&permissions=8&scope=bot+applications.commands>
@@ -41,9 +41,8 @@ This project includes built-in process recovery handlers. For a truly persistent
 1. Create a `.env` file or set environment variables for the bot:
    ```env
    BOT_TOKEN=your-bot-token
-   CLIENT_ID=your-client-id
-   GUILD_ID=your-guild-id # optional for guild-specific command deployment
    OWNER_IDS=your-user-id
+   PREFIX=!
    MUTE_ROLE=Muted
    WELCOME_CHANNEL_ID=welcome-channel-id
    LOG_CHANNEL_ID=log-channel-id
