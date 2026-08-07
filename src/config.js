@@ -43,7 +43,8 @@ module.exports = {
     muteRole: process.env.MUTE_ROLE || fileConfig.moderation?.muteRole || 'Muted',
     welcomeChannelId: process.env.WELCOME_CHANNEL_ID || fileConfig.moderation?.welcomeChannelId || '',
     logChannelId: process.env.LOG_CHANNEL_ID || fileConfig.moderation?.logChannelId || '',
-    automodLogChannelId: process.env.AUTOMOD_LOG_CHANNEL_ID || fileConfig.moderation?.automodLogChannelId || fileConfig.moderation?.logChannelId || ''
+    automodLogChannelId: process.env.AUTOMOD_LOG_CHANNEL_ID || fileConfig.moderation?.automodLogChannelId || fileConfig.moderation?.logChannelId || '',
+    createDefaultAutoModRule: parseBoolean(process.env.CREATE_AUTOMOD_DEFAULT_RULE, fileConfig.moderation?.createDefaultAutoModRule || false)
   },
   economy: {
     startingBalance: parseNumber(process.env.STARTING_BALANCE, fileConfig.economy?.startingBalance || 100),

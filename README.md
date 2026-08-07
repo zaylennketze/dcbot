@@ -46,10 +46,12 @@ This project includes built-in process recovery handlers. For a truly persistent
    WELCOME_CHANNEL_ID=
    LOG_CHANNEL_ID=
    AUTOMOD_LOG_CHANNEL_ID=
+   CREATE_AUTOMOD_DEFAULT_RULE=false
    TICKET_CATEGORY_ID=
    ```
 
    Leave channel IDs blank to let the bot operate without requiring server-specific setup.
+   Set `CREATE_AUTOMOD_DEFAULT_RULE=true` if you want the bot to automatically create a default AutoMod rule when it joins new servers.
 
 
 2. Build and start with Docker Compose:

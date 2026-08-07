@@ -6,7 +6,8 @@
     "muteRole": "Muted",
     "welcomeChannelId": "",
     "logChannelId": "",
-    "automodLogChannelId": ""
+    "automodLogChannelId": "",
+    "createDefaultAutoModRule": false
   },
   "economy": {
     "startingBalance": 100,

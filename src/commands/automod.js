@@ -47,6 +47,11 @@ module.exports = {
       subcommand
         .setName('list')
         .setDescription('List AutoMod rules for this guild')
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('help')
+        .setDescription('Show how to use AutoMod commands')
     ),
 
   async execute(interaction) {
@@ -154,6 +159,18 @@ module.exports = {
         console.error('Failed to fetch automod rules:', error);
         return interaction.reply({ content: `Could not fetch AutoMod rules: ${error.message}`, ephemeral: true });
       }
+    }
+
+    if (subcommand === 'help') {
+      return interaction.reply({
+        content: 'AutoMod commands:\n' +
+          '/automod create name:<name> triggertype:<type> actiontype:<action> [keywords:<comma-separated keywords>] [preset:<preset>] [alertchannel:<channel>] [duration:<seconds>] [enabled:<true|false>]\n' +
+          '/automod delete ruleid:<id>\n' +
+          '/automod list\n\n' +
+          'Trigger types: Keyword, Keyword Preset, Spam, Mention Spam\n' +
+          'Action types: Block Message, Send Alert Message, Timeout, Block Member Interaction',
+        ephemeral: true
+      });
     }
 
     return interaction.reply({ content: 'Unknown automod subcommand.', ephemeral: true });
