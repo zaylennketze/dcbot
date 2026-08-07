@@ -9,15 +9,15 @@ const updatePresence = async (client) => {
   const globalBio = client.storage?.getSetting('global', 'botActivityText');
   if (globalBio) {
     activities.push({
-      type: ActivityType.Custom,
-      name: 'Custom Status',
-      state: globalBio
+      name: globalBio,
+      type: ActivityType.Playing
     });
   }
 
   activities.push({
-    name: defaultText,
-    type: ActivityType.Watching
+    type: ActivityType.Custom,
+    name: 'Custom Status',
+    state: defaultText
   });
 
   return client.user.setPresence({
