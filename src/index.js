@@ -13,10 +13,22 @@ const clientIntents = [
 if (config.useMessageContentIntent) clientIntents.push(GatewayIntentBits.MessageContent);
 if (config.useGuildMembersIntent) clientIntents.push(GatewayIntentBits.GuildMembers);
 
+const pidFile = path.join(__dirname, '..', '.bot.pid');
+const writePidFile = () => fs.writeFileSync(pidFile, process.pid.toString(), 'utf8');
+const removePidFile = () => {
+  try {
+    if (fs.existsSync(pidFile)) fs.unlinkSync(pidFile);
+  } catch {
+    // ignore cleanup errors
+  }
+};
+
 const client = new Client({
   intents: clientIntents,
   partials: [Partials.Channel, Partials.Message, Partials.GuildMember, Partials.Reaction]
 });
+
+process.on('exit', removePidFile);
 
 client.commands = new Collection();
 const commandsPath = path.join(__dirname, 'commands');
@@ -109,13 +121,17 @@ const gracefulShutdown = async (signal) => {
     console.warn('Failed to send shutdown messages:', error);
   });
   await client.destroy();
+  removePidFile();
   process.exit(0);
 };
 
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 
-client.login(config.token).catch((error) => {
-  console.error('Failed to login:', error);
-  process.exit(1);
-});
+client.login(config.token)
+  .then(() => writePidFile())
+  .catch((error) => {
+    console.error('Failed to login:', error);
+    removePidFile();
+    process.exit(1);
+  });

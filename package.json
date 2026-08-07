@@ -5,6 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
+    "stop": "node -e \"const fs=require('fs');const pid=fs.existsSync('.bot.pid')?fs.readFileSync('.bot.pid','utf8'):null; if(pid){ process.kill(Number(pid), 'SIGTERM'); console.log('Sent SIGTERM to bot PID', pid);} else { console.error('No PID file found. Is the bot running?'); process.exit(1);} \"",
     "deploy": "node src/deploy-commands.js"
   },
   "engines": {
