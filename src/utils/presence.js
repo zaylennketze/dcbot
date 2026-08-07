@@ -3,7 +3,7 @@ const { ActivityType } = require('discord.js');
 const updatePresence = async (client) => {
   if (!client.user) return;
 
-  const defaultText = `Your Server | ${client.guilds.cache.size} servers`;
+  const defaultText = `Your Server 👀 | ${client.guilds.cache.size} servers`;
   const activities = [
     {
       name: defaultText,
@@ -21,7 +21,7 @@ const updatePresence = async (client) => {
 
   return client.user.setPresence({
     activities,
-    status: 'online'
+    status: 'dnd'
   });
 };
 
