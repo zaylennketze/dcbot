@@ -6,7 +6,12 @@ module.exports = {
   async execute(client) {
     console.log(`Logged in as ${client.user.tag}`);
     try {
-      await client.user.setActivity(`${config.prefix}help | ${client.guilds.cache.size} servers`, {
+      const commands = [...client.commands.keys()].join(', ');
+      const activityText = commands.length > 90
+        ? `Use ${config.prefix}help for commands`
+        : `Commands: ${commands}`;
+
+      await client.user.setActivity(activityText, {
         type: 'Listening'
       });
     } catch (error) {
