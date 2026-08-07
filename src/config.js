@@ -26,6 +26,15 @@ const parseArray = (value, fallback) => {
   return value.split(',').map((item) => item.trim()).filter(Boolean);
 };
 
+const parseBoolean = (value, fallback) => {
+  if (typeof value === 'boolean') return value;
+  if (typeof value !== 'string') return fallback;
+  const normalized = value.trim().toLowerCase();
+  if (['true', '1', 'yes', 'y'].includes(normalized)) return true;
+  if (['false', '0', 'no', 'n'].includes(normalized)) return false;
+  return fallback;
+};
+
 module.exports = {
   token: process.env.BOT_TOKEN || fileConfig.token,
   prefix: process.env.PREFIX || fileConfig.prefix || '!',
@@ -44,5 +53,7 @@ module.exports = {
   ticket: {
     categoryId: process.env.TICKET_CATEGORY_ID || fileConfig.ticket?.categoryId || '',
     logChannelId: process.env.TICKET_LOG_CHANNEL_ID || fileConfig.ticket?.logChannelId || ''
-  }
+  },
+  useMessageContentIntent: parseBoolean(process.env.USE_MESSAGE_CONTENT_INTENT, fileConfig.useMessageContentIntent || false),
+  useGuildMembersIntent: parseBoolean(process.env.USE_GUILD_MEMBERS_INTENT, fileConfig.useGuildMembersIntent || false)
 };

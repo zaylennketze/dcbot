@@ -26,7 +26,7 @@ module.exports = {
     const subcommand = interaction.options.getSubcommand();
     const guildId = interaction.guild.id;
     const userId = interaction.user.id;
-    const defaultBalance = require('../config.json').economy.startingBalance;
+    const defaultBalance = require('../config').economy.startingBalance;
 
     const userRow = interaction.client.storage.find('economy', guildId, userId) || { balance: defaultBalance, lastDaily: 0 };
     const saveBalance = (newBalance, lastDaily = userRow.lastDaily) => {
@@ -43,7 +43,7 @@ module.exports = {
           const due = 24 * 60 * 60 * 1000 - (now - last);
           return interaction.reply({ content: `⏳ You can claim again in ${ms(due, { long: true })}.`, ephemeral: true });
         }
-        const amount = require('../config.json').economy.dailyAmount;
+        const amount = require('../config').economy.dailyAmount;
         saveBalance(userRow.balance + amount, now);
         return interaction.reply({ content: `🎉 Daily claimed! You received ${amount} coins. New balance: ${userRow.balance + amount}.` });
       }

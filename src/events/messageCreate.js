@@ -1,9 +1,9 @@
-const config = require('../config.json');
+const config = require('../config');
 
 module.exports = {
   name: 'messageCreate',
   async execute(message, client) {
-    if (message.author.bot || !message.guild) return;
+    if (message.author.bot || !message.guild || typeof message.content !== 'string') return;
     if (!message.content.startsWith(config.prefix)) return;
 
     const args = message.content.slice(config.prefix.length).trim().split(/ +/);

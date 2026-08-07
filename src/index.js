@@ -5,14 +5,16 @@ const { DisTube } = require('distube');
 const config = require('./config');
 const Storage = require('./storage');
 
+const clientIntents = [
+  GatewayIntentBits.Guilds,
+  GatewayIntentBits.GuildMessages,
+  GatewayIntentBits.GuildVoiceStates
+];
+if (config.useMessageContentIntent) clientIntents.push(GatewayIntentBits.MessageContent);
+if (config.useGuildMembersIntent) clientIntents.push(GatewayIntentBits.GuildMembers);
+
 const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent,
-    GatewayIntentBits.GuildMembers,
-    GatewayIntentBits.GuildVoiceStates
-  ],
+  intents: clientIntents,
   partials: [Partials.Channel, Partials.Message, Partials.GuildMember, Partials.Reaction]
 });
 

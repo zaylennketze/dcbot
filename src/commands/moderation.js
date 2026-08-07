@@ -65,7 +65,7 @@ module.exports = {
         return interaction.reply({ content: `✅ Banned ${target.user.tag}. Reason: ${reason}` });
       case 'mute': {
         if (!target) return interaction.reply({ content: 'Member not found.', ephemeral: true });
-        const muteRoleName = require('../config.json').moderation.muteRole;
+        const muteRoleName = require('../config').moderation.muteRole;
         let muteRole = interaction.guild.roles.cache.find((role) => role.name === muteRoleName);
         if (!muteRole) {
           muteRole = await interaction.guild.roles.create({ name: muteRoleName, permissions: [] });
@@ -78,7 +78,7 @@ module.exports = {
       }
       case 'unmute': {
         if (!target) return interaction.reply({ content: 'Member not found.', ephemeral: true });
-        const muteRoleName = require('../config.json').moderation.muteRole;
+        const muteRoleName = require('../config').moderation.muteRole;
         const muteRole = interaction.guild.roles.cache.find((role) => role.name === muteRoleName);
         if (muteRole) await target.roles.remove(muteRole);
         return interaction.reply({ content: `✅ Unmuted ${target.user.tag}.` });
