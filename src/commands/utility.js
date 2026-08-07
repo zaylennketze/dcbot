@@ -1,10 +1,11 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('utility')
     .setDescription('Utility commands: ping, serverinfo, userinfo, avatar, announce, poll')
     .addSubcommand((subcommand) => subcommand.setName('ping').setDescription('Check bot latency'))
+    .addSubcommand((subcommand) => subcommand.setName('setlogchannel').setDescription('Set the bot logs channel').addChannelOption((option) => option.setName('channel').setDescription('Channel for bot status logs').setRequired(true)))
     .addSubcommand((subcommand) => subcommand.setName('serverinfo').setDescription('Get server information'))
     .addSubcommand((subcommand) =>
       subcommand
@@ -59,6 +60,24 @@ module.exports = {
           .setFooter({ text: 'Utility ping report' });
 
         return interaction.reply({ embeds: [embed] });
+      }
+      case 'setlogchannel': {
+        if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageGuild)) {
+          return interaction.reply({ content: 'You need the Manage Server permission to set the bot logs channel.', ephemeral: true });
+        }
+
+        const channel = interaction.options.getChannel('channel');
+        if (!channel.isTextBased()) {
+          return interaction.reply({ content: 'Please select a text channel.', ephemeral: true });
+        }
+
+        interaction.client.storage.setSetting(interaction.guild.id, 'botLogChannelId', channel.id);
+        const confirmEmbed = new EmbedBuilder()
+          .setTitle('Bot Logs Channel Set')
+          .setDescription(`Bot startup/shutdown logs will now be sent to ${channel}.`)
+          .setColor('#00B0F4');
+
+        return interaction.reply({ embeds: [confirmEmbed], ephemeral: true });
       }
       case 'serverinfo': {
         const guild = interaction.guild;

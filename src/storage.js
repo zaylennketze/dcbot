@@ -27,6 +27,19 @@ class Storage {
     return this.data[table].find((row) => row.guildId === guildId && row.userId === userId);
   }
 
+  getSetting(guildId, key) {
+    return this.data.settings?.[guildId]?.[key] ?? null;
+  }
+
+  setSetting(guildId, key, value) {
+    if (!this.data.settings[guildId]) {
+      this.data.settings[guildId] = {};
+    }
+    this.data.settings[guildId][key] = value;
+    this.save();
+    return this.data.settings[guildId];
+  }
+
   upsert(table, guildId, userId, values) {
     const existing = this.find(table, guildId, userId);
     if (existing) {

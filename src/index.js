@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
-const { Client, Collection, GatewayIntentBits, Partials, PermissionsBitField } = require('discord.js');
+const readline = require('readline');
+const { Client, Collection, GatewayIntentBits, Partials, PermissionsBitField, EmbedBuilder } = require('discord.js');
 const { DisTube } = require('distube');
 const config = require('./config');
 const Storage = require('./storage');
@@ -27,6 +28,66 @@ const client = new Client({
   intents: clientIntents,
   partials: [Partials.Channel, Partials.Message, Partials.GuildMember, Partials.Reaction]
 });
+
+const args = process.argv.slice(2);
+const isTerminalSay = args[0] === '--say';
+const terminalSayMessage = isTerminalSay ? args.slice(1).join(' ').trim() : '';
+const sendAndExitMode = isTerminalSay && terminalSayMessage.length > 0;
+if (isTerminalSay && !terminalSayMessage) {
+  console.error('Usage: node src/index.js --say "Your message here"');
+  process.exit(1);
+}
+client.skipStartupEmbed = sendAndExitMode;
+
+const getRandomTextChannel = (guild) => {
+  const available = guild.channels.cache.filter((channel) => {
+    if (!channel.isTextBased()) return false;
+    const perms = guild.members.me?.permissionsIn(channel);
+    return perms?.has([PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages]);
+  });
+  return available.size ? available.random() : null;
+};
+
+const sendTerminalBroadcast = async (message) => {
+  const broadcastMessage = `**SERVER**: ${message}`;
+  for (const guild of client.guilds.cache.values()) {
+    const channel = getRandomTextChannel(guild);
+    if (!channel) {
+      console.warn(`No available text channel to send terminal message in guild ${guild.id}`);
+      continue;
+    }
+    try {
+      await channel.send({ content: broadcastMessage });
+    } catch (error) {
+      console.warn(`Failed to send terminal message in guild ${guild.id}:`, error.message);
+    }
+  }
+};
+
+const setupTerminalInput = () => {
+  if (!process.stdin.isTTY) return;
+
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+    prompt: 'terminal> '
+  });
+
+  rl.prompt();
+  rl.on('line', async (line) => {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      rl.prompt();
+      return;
+    }
+    await sendTerminalBroadcast(trimmed);
+    rl.prompt();
+  });
+
+  rl.on('close', () => {
+    console.log('Terminal input closed.');
+  });
+};
 
 process.on('exit', removePidFile);
 
@@ -84,40 +145,84 @@ client.distube
     console.error(error);
   });
 
-const sendShutdownMessage = async () => {
-  const shutdownMessage = '❌ Unexpected Error: The bot is shutting down. Please check console for details.';
+const getLogChannel = (guild) => {
+  const channelId = client.storage.getSetting(guild.id, 'botLogChannelId');
+  if (!channelId) return null;
+  return guild.channels.cache.get(channelId) || null;
+};
+
+const sendLogEmbed = async (guild, embed) => {
+  const logChannel = getLogChannel(guild);
+  if (!logChannel || !logChannel.isTextBased()) return;
+
+  const botMember = guild.members.me;
+  if (!botMember) return;
+
+  const perms = logChannel.permissionsFor(botMember);
+  if (!perms?.has([PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages])) return;
+
+  await logChannel.send({ embeds: [embed] });
+};
+
+const sendShutdownEmbed = async () => {
+  const shutdownEmbed = new EmbedBuilder()
+    .setTitle('Bot Shut Down')
+    .setDescription('The bot has shut down.')
+    .setColor('#FF0000')
+    .setFooter({ text: 'Bot stopped gracefully.' });
+
   for (const guild of client.guilds.cache.values()) {
     try {
-      const botMember = guild.members.me;
-      if (!botMember) continue;
-
-      const targetChannel = guild.channels.cache
-        .filter((channel) => channel.isTextBased())
-        .find((channel) => {
-          const perms = channel.permissionsFor(botMember);
-          return perms?.has([PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages]);
-        });
-
-      if (targetChannel) {
-        await targetChannel.send(shutdownMessage);
-      }
+      await sendLogEmbed(guild, shutdownEmbed);
     } catch (error) {
       console.warn(`Failed to send shutdown message in guild ${guild.id}:`, error.message);
     }
   }
 };
 
-process.on('unhandledRejection', (reason) => {
+const sendErrorShutdownEmbed = async (reason) => {
+  const errorEmbed = new EmbedBuilder()
+    .setTitle('Bot Error Shutdown')
+    .setDescription('❌ Unexpected Error: The bot is shutting down. Please check console for details.')
+    .setColor('#FF0000');
+
+  const errorText = reason instanceof Error ? reason.stack || reason.message : String(reason);
+  if (errorText) {
+    errorEmbed.addFields({ name: 'Error', value: `${errorText}`.slice(0, 1024) });
+  }
+
+  for (const guild of client.guilds.cache.values()) {
+    try {
+      await sendLogEmbed(guild, errorEmbed);
+    } catch (error) {
+      console.warn(`Failed to send error shutdown message in guild ${guild.id}:`, error.message);
+    }
+  }
+};
+
+process.on('unhandledRejection', async (reason) => {
   console.error('Unhandled Promise Rejection:', reason);
+  await sendErrorShutdownEmbed(reason).catch((error) => {
+    console.warn('Failed to send error shutdown embed:', error);
+  });
+  await client.destroy();
+  removePidFile();
+  process.exit(1);
 });
 
-process.on('uncaughtException', (error) => {
+process.on('uncaughtException', async (error) => {
   console.error('Uncaught Exception:', error);
+  await sendErrorShutdownEmbed(error).catch((sendError) => {
+    console.warn('Failed to send error shutdown embed:', sendError);
+  });
+  await client.destroy();
+  removePidFile();
+  process.exit(1);
 });
 
 const gracefulShutdown = async (signal) => {
   console.log(`${signal} received, shutting down gracefully.`);
-  await sendShutdownMessage().catch((error) => {
+  await sendShutdownEmbed().catch((error) => {
     console.warn('Failed to send shutdown messages:', error);
   });
   await client.destroy();
@@ -129,7 +234,21 @@ process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 
 client.login(config.token)
-  .then(() => writePidFile())
+  .then(() => {
+    if (!sendAndExitMode) {
+      writePidFile();
+      client.once('ready', setupTerminalInput);
+    }
+    if (sendAndExitMode) {
+      client.once('ready', async () => {
+        await sendTerminalBroadcast(terminalSayMessage).catch((error) => {
+          console.error('Failed to send terminal broadcast:', error);
+        });
+        await client.destroy();
+        process.exit(0);
+      });
+    }
+  })
   .catch((error) => {
     console.error('Failed to login:', error);
     removePidFile();

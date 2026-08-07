@@ -5,6 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
+    "say": "node src/index.js --say",
     "stop": "node -e \"const fs=require('fs');const pidFile='.bot.pid'; if(!fs.existsSync(pidFile)){ console.log('No PID file found. Bot may not be running.'); process.exit(0);} const pid=fs.readFileSync(pidFile,'utf8').trim(); if(!pid || !/^[0-9]+$/.test(pid)){ fs.unlinkSync(pidFile); console.log('Removed invalid PID file.'); process.exit(0);} try { process.kill(Number(pid), 0); } catch (error) { if(error.code==='ESRCH'){ fs.unlinkSync(pidFile); console.log('Stale PID file removed. Bot is not running.'); process.exit(0);} if(error.code==='EPERM'){ console.log('PID exists but cannot be signaled.'); process.exit(1);} throw error; } try { process.kill(Number(pid), 'SIGTERM'); console.log('Sent SIGTERM to bot PID', pid); } catch (error) { if(error.code==='ESRCH'){ fs.unlinkSync(pidFile); console.log('Stale PID file removed. Bot is not running.'); process.exit(0);} throw error; } process.exit(0); \"",
     "restart": "npm run stop && npm run start",
     "deploy": "node src/deploy-commands.js"
