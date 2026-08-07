@@ -90,6 +90,18 @@ module.exports = {
         triggerMetadata.mentionRaidProtectionEnabled = true;
       }
 
+      const invalidTriggerActionPairs = new Map([
+        [AutoModerationRuleTriggerType.Spam, new Set([AutoModerationActionType.Timeout])],
+        [AutoModerationRuleTriggerType.MentionSpam, new Set([AutoModerationActionType.Timeout])]
+      ]);
+
+      if (invalidTriggerActionPairs.get(triggerType)?.has(actionType)) {
+        return interaction.reply({
+          content: 'Timeout actions are not permitted for Spam or Mention Spam triggers. Use Block Message or Send Alert Message instead.',
+          ephemeral: true
+        });
+      }
+
       const action = { type: actionType };
       if (actionType === AutoModerationActionType.SendAlertMessage) {
         if (!alertChannel || !alertChannel.isTextBased()) {
@@ -99,6 +111,9 @@ module.exports = {
       }
 
       if (actionType === AutoModerationActionType.Timeout) {
+        if (duration && duration < 1) {
+          return interaction.reply({ content: 'Timeout duration must be at least 1 second.', ephemeral: true });
+        }
         action.metadata = { durationSeconds: duration || 60 };
       }
 
