@@ -43,6 +43,16 @@ module.exports = {
         .setName('purge')
         .setDescription('Delete recent messages in a channel')
         .addIntegerOption((option) => option.setName('amount').setDescription('Number of messages to delete').setRequired(true))
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('lock')
+        .setDescription('Lock the current text channel')
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('unlock')
+        .setDescription('Unlock the current text channel')
     ),
 
   async execute(interaction) {
@@ -98,6 +108,28 @@ module.exports = {
         }
         const messages = await interaction.channel.bulkDelete(amount, true);
         return interaction.reply({ content: `🧹 Deleted ${messages.size} messages.`, ephemeral: true });
+      }
+      case 'lock': {
+        const channel = interaction.channel;
+        if (!channel || !channel.isTextBased()) {
+          return interaction.reply({ content: 'This command must be used in a text channel.', ephemeral: true });
+        }
+        await channel.permissionOverwrites.edit(interaction.guild.roles.everyone, {
+          SendMessages: false,
+          AddReactions: false
+        });
+        return interaction.reply({ content: '🔒 Channel locked successfully.', ephemeral: true });
+      }
+      case 'unlock': {
+        const channel = interaction.channel;
+        if (!channel || !channel.isTextBased()) {
+          return interaction.reply({ content: 'This command must be used in a text channel.', ephemeral: true });
+        }
+        await channel.permissionOverwrites.edit(interaction.guild.roles.everyone, {
+          SendMessages: true,
+          AddReactions: true
+        });
+        return interaction.reply({ content: '🔓 Channel unlocked successfully.', ephemeral: true });
       }
       default:
         return interaction.reply({ content: 'Unknown moderation command.', ephemeral: true });
