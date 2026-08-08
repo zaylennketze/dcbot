@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const ms = require('ms');
 
 module.exports = {
@@ -64,18 +64,28 @@ module.exports = {
     switch (subcommand) {
       case 'ping': {
         const wsPing = Math.round(interaction.client.ws.ping);
+        const latency = Date.now() - interaction.createdTimestamp;
         const embed = new EmbedBuilder()
           .setTitle('Bot Status')
           .setDescription('Ping and host server status overview')
           .setColor('#00B0F4')
           .addFields(
-            { name: 'Latency', value: `${wsPing}ms`, inline: true },
+            { name: 'Latency', value: `${latency}ms`, inline: true },
             { name: 'API heartbeat', value: `${wsPing}ms`, inline: true },
-            { name: 'Status', value: 'Online ✅', inline: false }
-          );
+            { name: 'Server Node', value: 'US-14e7', inline: true },
+            { name: 'Host', value: 'KVM/QEMU (Standard PC (i440FX + PIIX, 1996) pc-i440fx-10.1)', inline: false },
+            { name: 'OS', value: 'Ubuntu 20.04.3 LTS x86_64', inline: true },
+            { name: 'Kernel', value: '6.8.0-71-generic', inline: true },
+            { name: 'CPU', value: 'Intel Xeon E5-2697 v2 (48) @ 2.699GHz', inline: false },
+            { name: 'GPU', value: '00:02.0 Vendor 1234 Device 1112', inline: true },
+            { name: 'Memory', value: '1028GB Max', inline: true },
+            { name: 'Status', value: 'Online :white_check_mark:', inline: false }
+          )
+          .setFooter({ text: 'Utility ping report' });
 
         return interaction.reply({ embeds: [embed] });
       }
+
       case 'serverinfo': {
         const guild = interaction.guild;
         const embed = new EmbedBuilder()
@@ -89,6 +99,7 @@ module.exports = {
           .setTimestamp();
         return interaction.reply({ embeds: [embed] });
       }
+
       case 'userinfo': {
         const member = interaction.options.getMember('target') || interaction.member;
         const embed = new EmbedBuilder()
@@ -102,10 +113,12 @@ module.exports = {
           .setTimestamp();
         return interaction.reply({ embeds: [embed] });
       }
+
       case 'avatar': {
         const user = interaction.options.getUser('target') || interaction.user;
         return interaction.reply({ content: user.displayAvatarURL({ dynamic: true, size: 1024 }) });
       }
+
       case 'announce': {
         const channel = interaction.options.getChannel('channel');
         const message = interaction.options.getString('message');
@@ -145,6 +158,7 @@ module.exports = {
 
         return interaction.reply({ content: `Announcement sent to ${sentChannels.join(', ')}.`, ephemeral: true });
       }
+
       case 'poll': {
         const question = interaction.options.getString('question');
         const options = interaction.options.getString('options').split(',').map((option) => option.trim()).filter(Boolean).slice(0, 5);
@@ -160,6 +174,7 @@ module.exports = {
         }
         return null;
       }
+
       case 'remindme': {
         const message = interaction.options.getString('message');
         const when = interaction.options.getString('when');
@@ -169,20 +184,24 @@ module.exports = {
         interaction.client.storage.upsert('reminders', interaction.guild.id, interaction.user.id, reminder);
         return interaction.reply({ content: `⏰ Reminder set for ${when}.` });
       }
+
       case 'coinflip': {
         const result = Math.random() < 0.5 ? 'Heads' : 'Tails';
         return interaction.reply({ content: `🪙 ${result}!` });
       }
+
       case 'roll': {
         const sides = interaction.options.getInteger('sides') || 6;
         const value = Math.floor(Math.random() * sides) + 1;
         return interaction.reply({ content: `🎲 Rolled a ${sides}-sided die: ${value}` });
       }
+
       case '8ball': {
         const responses = ['Yes', 'No', 'Definitely', 'Ask again later', 'Outlook seems good', 'Cannot predict now'];
         const answer = responses[Math.floor(Math.random() * responses.length)];
         return interaction.reply({ content: `🎱 ${answer}` });
       }
+
       default:
         return interaction.reply({ content: 'Unknown utility command.', ephemeral: true });
     }
