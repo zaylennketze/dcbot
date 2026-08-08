@@ -52,6 +52,24 @@ To stop the bot:
 npm stop
 ```
 
+Persistent run options
+
+- PM2 (recommended):
+   1. Ensure `pm2` is installed globally: `npm install -g pm2`
+   2. Start the bot with PM2: `npm run pm2-start`
+   3. Save the PM2 process list so it restarts on reboot: `npm run pm2-save`
+   4. (Optional) Setup PM2 to start on boot: `npm run pm2-setup` and follow the printed instructions.
+
+- Systemd (server environments):
+   1. Copy `dist/systemd/dcbot.service` to `/etc/systemd/system/dcbot.service` and edit `User` and `WorkingDirectory` to match your system.
+   2. Reload systemd: `sudo systemctl daemon-reload`
+   3. Enable and start the service: `sudo systemctl enable --now dcbot.service`
+
+- Simple detached runner (no external tools):
+   1. Make the helper executable: `chmod +x bin/run-detached.sh`
+   2. Run it: `./bin/run-detached.sh`
+   3. The supervisor will restart the bot on crashes. PID is written to `.bot.pid`.
+
 ## Docker
 
 1. Create a `.env` file or set environment variables for the bot:
