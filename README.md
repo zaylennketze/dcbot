@@ -33,7 +33,19 @@ A modular Discord bot scaffold with moderation, utility, economy, music, ticketi
 
 ## Keep it running forever
 
-This project includes built-in process recovery handlers. For a truly persistent deployment, use a process manager such as `pm2`, Docker, or a cloud host with auto-restart enabled to keep the bot online.
+This project now uses `pm2` for the default `npm start` command, so the bot can keep running after the terminal closes and will automatically restart on crashes.
+
+If you are using Docker, continue using Docker Compose with restart support.
+
+For the best persistence outside Docker, use:
+```bash
+npm start
+```
+
+To stop the bot:
+```bash
+npm stop
+```
 
 ## Docker
 
