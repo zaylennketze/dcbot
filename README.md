@@ -31,6 +31,11 @@ A modular Discord bot scaffold with moderation, utility, economy, music, ticketi
    npm start
    ```
 
+6. Get the invite link for your bot:
+   ```bash
+   npm run invite
+   ```
+
 ## Keep it running forever
 
 This project now uses `pm2` for the default `npm start` command, so the bot can keep running after the terminal closes and will automatically restart on crashes.
