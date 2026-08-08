@@ -24,6 +24,7 @@ class Storage {
   }
 
   find(table, guildId, userId) {
+    if (!this.data[table]) this.data[table] = [];
     return this.data[table].find((row) => row.guildId === guildId && row.userId === userId);
   }
 
@@ -51,8 +52,22 @@ class Storage {
     return this.find(table, guildId, userId);
   }
 
+  delete(table, guildId, userId) {
+    const initialLength = this.data[table].length;
+    this.data[table] = this.data[table].filter((row) => !(row.guildId === guildId && row.userId === userId));
+    if (this.data[table].length !== initialLength) {
+      this.save();
+      return true;
+    }
+    return false;
+  }
+
   getAll(table, guildId) {
     return this.data[table].filter((row) => row.guildId === guildId);
+  }
+
+  getAllByGuild(table, guildId) {
+    return this.getAll(table, guildId);
   }
 }
 

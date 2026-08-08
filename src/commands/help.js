@@ -20,7 +20,7 @@ module.exports = {
 
     const embed = new EmbedBuilder()
       .setTitle('Bot Command Help')
-      .setDescription('Use these slash commands to interact with the bot.')
+      .setDescription('Use these slash commands to interact with the bot. Moderation, utility, economy, music, tickets, and automod are all included.')
       .addFields({ name: 'Commands', value: commandList || 'No commands available.' })
       .setColor('Blue')
       .setTimestamp();

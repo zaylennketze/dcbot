@@ -1,9 +1,10 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
+const ms = require('ms');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('utility')
-    .setDescription('Utility commands: ping, serverinfo, userinfo, avatar, announce, poll')
+    .setDescription('Utility, fun, and reminder commands')
     .addSubcommand((subcommand) => subcommand.setName('ping').setDescription('Check bot latency'))
     .addSubcommand((subcommand) => subcommand.setName('serverinfo').setDescription('Get server information'))
     .addSubcommand((subcommand) =>
@@ -31,6 +32,30 @@ module.exports = {
         .setDescription('Create a quick poll')
         .addStringOption((option) => option.setName('question').setDescription('Poll question').setRequired(true))
         .addStringOption((option) => option.setName('options').setDescription('Comma-separated options, max 5').setRequired(true))
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('remindme')
+        .setDescription('Schedule a reminder')
+        .addStringOption((option) => option.setName('message').setDescription('Reminder text').setRequired(true))
+        .addStringOption((option) => option.setName('when').setDescription('When to remind you, e.g. 10m or 2h').setRequired(true))
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('coinflip')
+        .setDescription('Flip a coin')
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('roll')
+        .setDescription('Roll a die')
+        .addIntegerOption((option) => option.setName('sides').setDescription('Number of sides').setRequired(false))
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('8ball')
+        .setDescription('Ask the magic 8-ball a question')
+        .addStringOption((option) => option.setName('question').setDescription('Question to ask').setRequired(true))
     ),
 
   async execute(interaction) {
@@ -39,24 +64,15 @@ module.exports = {
     switch (subcommand) {
       case 'ping': {
         const wsPing = Math.round(interaction.client.ws.ping);
-        const latency = wsPing;
         const embed = new EmbedBuilder()
           .setTitle('Bot Status')
           .setDescription('Ping and host server status overview')
           .setColor('#00B0F4')
           .addFields(
-            { name: 'Latency', value: `${latency}ms`, inline: true },
+            { name: 'Latency', value: `${wsPing}ms`, inline: true },
             { name: 'API heartbeat', value: `${wsPing}ms`, inline: true },
-            { name: 'Server Node', value: 'US-14e7', inline: true },
-            { name: 'Host', value: 'KVM/QEMU (Standard PC (i440FX + PIIX, 1996) pc-i440fx-10.1)', inline: false },
-            { name: 'OS', value: 'Ubuntu 20.04.3 LTS x86_64', inline: true },
-            { name: 'Kernel', value: '6.8.0-71-generic', inline: true },
-            { name: 'CPU', value: 'Intel Xeon E5-2697 v2 (48) @ 2.699GHz', inline: false },
-            { name: 'GPU', value: '00:02.0 Vendor 1234 Device 1112', inline: true },
-            { name: 'Memory', value: '1028GB Max', inline: true },
-            { name: 'Status', value: 'Online :white_check_mark:', inline: false }
-          )
-          .setFooter({ text: 'Utility ping report' });
+            { name: 'Status', value: 'Online ✅', inline: false }
+          );
 
         return interaction.reply({ embeds: [embed] });
       }
@@ -97,15 +113,12 @@ module.exports = {
 
         const sendToChannel = async (targetChannel) => {
           if (!targetChannel?.isTextBased()) return false;
-          await targetChannel.send({ content: `📢 Announcement:
-${message}` });
+          await targetChannel.send({ content: `📢 Announcement:\n${message}` });
           return true;
         };
 
         if (channel) {
-          if (!channel.isTextBased()) {
-            return interaction.reply({ content: 'Please provide a text-based channel.', ephemeral: true });
-          }
+          if (!channel.isTextBased()) return interaction.reply({ content: 'Please provide a text-based channel.', ephemeral: true });
           await sendToChannel(channel);
           return interaction.reply({ content: `Announcement sent to ${channel}.`, ephemeral: true });
         }
@@ -125,14 +138,10 @@ ${message}` });
           try {
             await sendToChannel(targetChannel);
             sentChannels.push(`<#${targetChannel.id}>`);
-          } catch {
-            // ignore send failure per channel
-          }
+          } catch {}
         }
 
-        if (!sentChannels.length) {
-          return interaction.reply({ content: 'I found announcement-style channels, but could not send to any of them. Check my channel permissions.', ephemeral: true });
-        }
+        if (!sentChannels.length) return interaction.reply({ content: 'I found announcement-style channels, but could not send to any of them. Check my channel permissions.', ephemeral: true });
 
         return interaction.reply({ content: `Announcement sent to ${sentChannels.join(', ')}.`, ephemeral: true });
       }
@@ -150,6 +159,29 @@ ${message}` });
           await message.react(emojis[i]);
         }
         return null;
+      }
+      case 'remindme': {
+        const message = interaction.options.getString('message');
+        const when = interaction.options.getString('when');
+        const durationMs = ms(when);
+        if (!durationMs || durationMs < 1000) return interaction.reply({ content: 'Please provide a valid duration such as 10m or 2h.', ephemeral: true });
+        const reminder = { guildId: interaction.guild.id, userId: interaction.user.id, message, when: Date.now() + durationMs };
+        interaction.client.storage.upsert('reminders', interaction.guild.id, interaction.user.id, reminder);
+        return interaction.reply({ content: `⏰ Reminder set for ${when}.` });
+      }
+      case 'coinflip': {
+        const result = Math.random() < 0.5 ? 'Heads' : 'Tails';
+        return interaction.reply({ content: `🪙 ${result}!` });
+      }
+      case 'roll': {
+        const sides = interaction.options.getInteger('sides') || 6;
+        const value = Math.floor(Math.random() * sides) + 1;
+        return interaction.reply({ content: `🎲 Rolled a ${sides}-sided die: ${value}` });
+      }
+      case '8ball': {
+        const responses = ['Yes', 'No', 'Definitely', 'Ask again later', 'Outlook seems good', 'Cannot predict now'];
+        const answer = responses[Math.floor(Math.random() * responses.length)];
+        return interaction.reply({ content: `🎱 ${answer}` });
       }
       default:
         return interaction.reply({ content: 'Unknown utility command.', ephemeral: true });
