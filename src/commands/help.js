@@ -40,7 +40,7 @@ module.exports = {
     const fields = chunkFields(commandList);
     const embed = new EmbedBuilder()
       .setTitle('Bot Command Help')
-      .setDescription(`Use the prefix \\`${config.prefix}\\` to run commands.`)
+      .setDescription(`Use the prefix \`${config.prefix}\` to run commands.`)
       .setColor('Blue')
       .setTimestamp();
 
