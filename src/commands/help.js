@@ -48,6 +48,6 @@ module.exports = {
       embed.addFields(field);
     }
 
-    return interaction.reply({ embeds: [embed], ephemeral: true });
+    return interaction.reply({ embeds: [embed] });
   }
 };
