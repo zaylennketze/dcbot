@@ -1,16 +1,35 @@
 const fs = require('fs');
 const path = require('path');
-const { REST, Routes } = require('discord.js');
+const { REST, Routes, SlashCommandBuilder } = require('discord.js');
 const config = require('./config');
 
 const commands = [];
+const buildCommandData = (command) => {
+  if (command?.data?.toJSON) return command.data;
+  if (!command?.name) return null;
+
+  const builder = new SlashCommandBuilder()
+    .setName(command.name)
+    .setDescription(command.description || 'No description available.');
+
+  if (Array.isArray(command.subcommands)) {
+    for (const subcommand of command.subcommands) {
+      builder.addSubcommand((sub) =>
+        sub.setName(subcommand.name).setDescription(subcommand.description || 'No description.')
+      );
+    }
+  }
+
+  return builder;
+};
 const commandsPath = path.join(__dirname, 'commands');
 const commandFiles = fs.readdirSync(commandsPath).filter((file) => file.endsWith('.js'));
 
 for (const file of commandFiles) {
   const command = require(path.join(commandsPath, file));
-  if (command?.data?.toJSON) {
-    commands.push(command.data.toJSON());
+  const commandData = buildCommandData(command);
+  if (commandData?.toJSON) {
+    commands.push(commandData.toJSON());
   }
 }
 

@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
-const { Client, Collection, GatewayIntentBits, Partials, PermissionsBitField, EmbedBuilder } = require('discord.js');
+const { Client, Collection, GatewayIntentBits, Partials, PermissionsBitField, EmbedBuilder, SlashCommandBuilder } = require('discord.js');
 const { DisTube } = require('distube');
 const config = require('./config');
 const Storage = require('./storage');
@@ -100,11 +100,32 @@ client.commands = new Collection();
 const commandsPath = path.join(__dirname, 'commands');
 const commandFiles = fs.readdirSync(commandsPath).filter((file) => file.endsWith('.js'));
 
+const buildCommandData = (command) => {
+  if (command?.data?.toJSON) return command.data;
+  if (!command?.name) return null;
+
+  const builder = new SlashCommandBuilder()
+    .setName(command.name)
+    .setDescription(command.description || 'No description available.');
+
+  if (Array.isArray(command.subcommands)) {
+    for (const subcommand of command.subcommands) {
+      builder.addSubcommand((sub) =>
+        sub.setName(subcommand.name).setDescription(subcommand.description || 'No description.')
+      );
+    }
+  }
+
+  return builder;
+};
+
 for (const file of commandFiles) {
   const filePath = path.join(commandsPath, file);
   const command = require(filePath);
-  if (command?.data?.name) {
-    client.commands.set(command.data.name, command);
+  const commandData = buildCommandData(command);
+  if (commandData?.name) {
+    command.data = commandData;
+    client.commands.set(commandData.name, command);
   }
 }
 

@@ -37,7 +37,7 @@ const parseBoolean = (value, fallback) => {
 
 module.exports = {
   token: process.env.BOT_TOKEN || fileConfig.token,
-  prefix: process.env.PREFIX || fileConfig.prefix || '!',
+  prefix: process.env.PREFIX || fileConfig.prefix || ',',
   ownerIds: parseArray(process.env.OWNER_IDS, fileConfig.ownerIds || []),
   moderation: {
     muteRole: process.env.MUTE_ROLE || fileConfig.moderation?.muteRole || 'Muted',
