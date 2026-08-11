@@ -160,7 +160,7 @@ module.exports = {
         embeds.push(
           new EmbedBuilder()
             .setTitle('Bot Command Help')
-            .setDescription(`Use the prefix \\`${config.prefix}\\` to run commands.`)
+            .setDescription(`Use the prefix \`${config.prefix}\` to run commands.`)
             .setColor('Blue')
             .addFields(fields.slice(i, i + 24))
         );
