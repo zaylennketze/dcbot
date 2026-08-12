@@ -314,8 +314,17 @@ const gracefulShutdown = async (signal) => {
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 
-client.login(config.token)
-  .then(() => {
+const { deployCommands } = require('./deploy-commands');
+
+(async () => {
+  try {
+    await deployCommands();
+  } catch (error) {
+    console.error('Failed to deploy slash commands:', error);
+  }
+
+  try {
+    await client.login(config.token);
     if (!sendAndExitMode) {
       writePidFile();
       client.once('ready', setupTerminalInput);
@@ -329,9 +338,9 @@ client.login(config.token)
         process.exit(0);
       });
     }
-  })
-  .catch((error) => {
+  } catch (error) {
     console.error('Failed to login:', error);
     removePidFile();
     process.exit(1);
-  });
+  }
+})();
