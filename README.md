@@ -4,12 +4,12 @@ A modular Discord bot scaffold with moderation, utility, economy, music, ticketi
 
 ## Setup
 
-1. Copy the example configuration:
+1. Copy the example environment file:
    ```bash
-   cp src/config.example.json src/config.json
+   cp .env.example .env
    ```
 
-2. Fill in your bot token in `src/config.json` or set `BOT_TOKEN` in `.env`. Other configuration values are optional, so the bot can join and work in any server without preset channel or guild IDs.
+2. Fill in your bot token in `.env`. Other configuration values are optional, so the bot can join and work in any server without preset channel or guild IDs.
 
 3. Add the bot to your server using the invite link:
    <https://discord.com/api/oauth2/authorize?client_id=1535337566692180088&permissions=8&scope=bot+applications.commands>

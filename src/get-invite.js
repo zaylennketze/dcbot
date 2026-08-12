@@ -2,7 +2,7 @@ const { REST, Routes } = require('discord.js');
 const config = require('./config');
 
 if (!config.token || config.token.includes('YOUR_BOT_TOKEN')) {
-  console.error('Bot token is not configured. Set BOT_TOKEN in .env or src/config.json first.');
+  console.error('Bot token is not configured. Set BOT_TOKEN in .env first.');
   process.exit(1);
 }
 

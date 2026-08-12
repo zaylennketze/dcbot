@@ -189,7 +189,7 @@ fs.mkdirSync(path.dirname(storagePath), { recursive: true });
 client.storage = new Storage(storagePath);
 
 if (!config.token || config.token.includes('YOUR_BOT_TOKEN')) {
-  console.error('Bot token is not configured. Copy src/config.example.json to src/config.json and fill in your token.');
+  console.error('Bot token is not configured. Set BOT_TOKEN in .env first.');
   process.exit(1);
 }
 
