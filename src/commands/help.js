@@ -1,20 +1,41 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 
-const chunkFields = (items) => {
-  const fields = [];
-  let currentValue = '';
+const createEmbedPages = (commandList) => {
+  const pages = [];
+  let fields = [];
+  let currentChars = 0;
 
-  for (const item of items) {
-    if (currentValue.length + item.length + 1 > 1024) {
-      fields.push({ name: '\u200b', value: currentValue || 'No commands available.' });
-      currentValue = `${item}\n`;
-      continue;
+  const flushPage = () => {
+    if (!fields.length) return;
+    pages.push(fields);
+    fields = [];
+    currentChars = 0;
+  };
+
+  for (const item of commandList) {
+    const lineLength = item.length + 1;
+    if (fields.length >= 24 || currentChars + lineLength > 3800) {
+      flushPage();
     }
-    currentValue += `${item}\n`;
+    fields.push({ name: '\u200b', value: item });
+    currentChars += lineLength;
   }
 
-  if (currentValue) fields.push({ name: '\u200b', value: currentValue });
-  return fields;
+  flushPage();
+  return pages.map((page, index) => {
+    const embed = new EmbedBuilder()
+      .setTitle('Bot Command Help')
+      .setDescription('Use slash commands with `/` to run commands.')
+      .setColor('Blue')
+      .setTimestamp();
+
+    if (pages.length > 1) {
+      embed.setFooter({ text: `Page ${index + 1} of ${pages.length}` });
+    }
+
+    embed.addFields(page);
+    return embed;
+  });
 };
 
 module.exports = {
@@ -36,17 +57,16 @@ module.exports = {
       return `**/${name}** — ${description}${subcommands ? `\n${subcommands}` : ''}`;
     });
 
-    const fields = chunkFields(commandList);
-    const embed = new EmbedBuilder()
-      .setTitle('Bot Command Help')
-      .setDescription('Use slash commands with `/` to run commands.')
-      .setColor('Blue')
-      .setTimestamp();
-
-    for (const field of fields) {
-      embed.addFields(field);
+    const embeds = createEmbedPages(commandList);
+    if (!embeds.length) {
+      return interaction.reply({ content: 'No commands available.', ephemeral: true });
     }
 
-    return interaction.reply({ embeds: [embed] });
+    await interaction.reply({ embeds: [embeds[0]] });
+
+    for (let i = 1; i < embeds.length; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      await interaction.followUp({ embeds: [embeds[i]] });
+    }
   }
 };
