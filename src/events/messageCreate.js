@@ -143,13 +143,27 @@ const chunkFields = (lines) => {
 module.exports = {
   name: 'messageCreate',
   async execute(message, client) {
-    if (message.author.bot || !message.guild || typeof message.content !== 'string') return;
+    if (message.author.bot || typeof message.content !== 'string') return;
+
+    // Log DMs
+    if (!message.guild) {
+      console.log(`[DM] ${message.author.tag} (${message.author.id}): ${message.content}`);
+      return;
+    }
+
     if (!message.content.startsWith(config.prefix)) return;
 
     const raw = message.content.slice(config.prefix.length).trim();
     const args = parseArgs(raw);
     const commandName = args.shift()?.toLowerCase();
     if (!commandName) return;
+
+    // Log prefix commands
+    const user = message.author.tag;
+    const guild = message.guild.name;
+    const guildId = message.guild.id;
+    const userId = message.author.id;
+    console.log(`[COMMAND] ${user} (${userId}) in ${guild} (${guildId}): ${config.prefix}${commandName}`);
 
     if (commandName === 'help') {
       const lines = formatCommandLines(client);
