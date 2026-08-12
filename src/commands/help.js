@@ -1,5 +1,4 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const config = require('../config');
 
 const chunkFields = (items) => {
   const fields = [];
@@ -28,19 +27,19 @@ module.exports = {
       const name = command.data?.name || command.name || 'unknown';
       const description = command.data?.description || command.description || 'No description available.';
       const subcommands = Array.isArray(command.subcommands)
-        ? command.subcommands.map((sub) => `• ${sub.name} — ${sub.description}`).join('\n')
+        ? command.subcommands.map((sub) => `• /${name} ${sub.name} — ${sub.description}`).join('\n')
         : (command.data?.options || [])
             .filter((option) => option.type === 1)
-            .map((subcommand) => `• ${subcommand.name} — ${subcommand.description}`)
+            .map((subcommand) => `• /${name} ${subcommand.name} — ${subcommand.description}`)
             .join('\n');
 
-      return `**${config.prefix}${name}** — ${description}${subcommands ? `\n${subcommands}` : ''}`;
+      return `**/${name}** — ${description}${subcommands ? `\n${subcommands}` : ''}`;
     });
 
     const fields = chunkFields(commandList);
     const embed = new EmbedBuilder()
       .setTitle('Bot Command Help')
-      .setDescription(`Use the prefix \`${config.prefix}\` to run commands.`)
+      .setDescription('Use slash commands with `/` to run commands.')
       .setColor('Blue')
       .setTimestamp();
 

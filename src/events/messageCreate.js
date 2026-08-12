@@ -1,143 +1,32 @@
-const config = require('../config');
-const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, PermissionsBitField } = require('discord.js');
 
-const parseArgs = (input) => {
-  const regex = /"([^"\\]*(?:\\.[^"\\]*)*)"|'([^'\\]*(?:\\.[^'\\]*)*)'|`([^`\\]*(?:\\.[^`\\]*)*)`|(\S+)/g;
-  const args = [];
-  let match;
-  while ((match = regex.exec(input))) {
-    args.push(match[1] ?? match[2] ?? match[3] ?? match[4]);
-  }
-  return args;
-};
+const SOURCE_GUILD_ID = '1536892362192724008';
+const SOURCE_CHANNEL_ID = '1536892364105449565';
 
-const parseBoolean = (value) => {
-  if (typeof value !== 'string') return null;
-  const normalized = value.trim().toLowerCase();
-  if (['true', 'yes', 'y', '1', 'on'].includes(normalized)) return true;
-  if (['false', 'no', 'n', '0', 'off'].includes(normalized)) return false;
-  return null;
-};
-
-const parseUser = (token, guild) => {
-  if (!token || !guild) return null;
-  const mention = token.match(/^<@!?(\d+)>$/);
-  if (mention) return guild.members.cache.get(mention[1])?.user || null;
-  if (/^\d+$/.test(token)) return guild.members.cache.get(token)?.user || null;
-  return guild.members.cache.find((member) => {
-    const username = member.user.username.toLowerCase();
-    const tag = member.user.tag.toLowerCase();
-    return username === token.toLowerCase() || tag === token.toLowerCase();
-  })?.user || null;
-};
-
-const parseMember = (token, guild) => {
-  if (!token || !guild) return null;
-  const mention = token.match(/^<@!?(\d+)>$/);
-  if (mention) return guild.members.cache.get(mention[1]) || null;
-  if (/^\d+$/.test(token)) return guild.members.cache.get(token) || null;
-  return guild.members.cache.find((member) => {
-    const username = member.user.username.toLowerCase();
-    const tag = member.user.tag.toLowerCase();
-    return username === token.toLowerCase() || tag === token.toLowerCase();
-  }) || null;
-};
-
-const parseChannel = (token, guild) => {
-  if (!token || !guild) return null;
-  const mention = token.match(/^<#(\d+)>$/);
-  if (mention) return guild.channels.cache.get(mention[1]) || null;
-  return guild.channels.cache.find((channel) => channel.name.toLowerCase() === token.toLowerCase()) || null;
-};
-
-const parseRole = (token, guild) => {
-  if (!token || !guild) return null;
-  const mention = token.match(/^<@&(\d+)>$/);
-  if (mention) return guild.roles.cache.get(mention[1]) || null;
-  return guild.roles.cache.find((role) => role.name.toLowerCase() === token.toLowerCase()) || null;
-};
-
-const buildOptions = (args, subcommand, message) => {
-  const tokens = [...args];
-  const consume = () => tokens.shift() || null;
-  const remaining = () => tokens.join(' ');
-
-  return {
-    getSubcommand: () => subcommand || null,
-    getString: (name) => {
-      const lower = String(name || '').toLowerCase();
-      if (['message', 'text', 'question', 'query', 'description', 'bio', 'suggestion', 'reason', 'timezone', 'city', 'word', 'role', 'name', 'url', 'option1', 'option2', 'option3', 'option4'].includes(lower)) {
-        return remaining() || consume();
-      }
-      return consume();
-    },
-    getInteger: () => {
-      const raw = consume();
-      const parsed = parseInt(raw, 10);
-      return Number.isNaN(parsed) ? null : parsed;
-    },
-    getBoolean: (name) => parseBoolean(consume()),
-    getUser: (name) => parseUser(consume(), message?.guild || null),
-    getMember: (name) => parseMember(consume(), message?.guild || null),
-    getChannel: (name) => parseChannel(consume(), message?.guild || null),
-    getRole: (name) => parseRole(consume(), message?.guild || null)
-  };
-};
-
-const createFakeInteraction = (message, client, command, commandArgs, subcommandName) => ({
-  guild: message.guild,
-  user: message.author,
-  member: message.member,
-  client,
-  channel: message.channel,
-  createdTimestamp: message.createdTimestamp,
-  reply: async (response) => {
-    if (typeof response === 'string') return message.reply(response);
-    return message.reply(response);
-  },
-  options: buildOptions(commandArgs, subcommandName, message)
-});
-
-const formatCommandLines = (client) => {
-  return [...client.commands.values()].map((cmd) => {
-    const name = cmd.data?.name || cmd.name || 'unknown';
-    const description = cmd.data?.description || cmd.description || 'No description available.';
-    const subcommandLines = [];
-
-    if (Array.isArray(cmd.subcommands)) {
-      for (const sub of cmd.subcommands) {
-        subcommandLines.push(`• ${sub.name} — ${sub.description}`);
-      }
-    } else if (cmd.data?.options) {
-      for (const option of cmd.data.options) {
-        if (option.type === 1) {
-          subcommandLines.push(`• ${option.name} — ${option.description || 'No description.'}`);
-        }
-      }
-    }
-
-    return `**${config.prefix}${name}** — ${description}${subcommandLines.length ? `\n${subcommandLines.join('\n')}` : ''}`;
+const getAnnouncementChannels = (guild) => {
+  return guild.channels.cache.filter((channel) => {
+    if (!channel.isTextBased()) return false;
+    const perms = guild.members.me?.permissionsIn(channel);
+    if (!perms?.has([PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages])) return false;
+    return true;
   });
 };
 
-const chunkFields = (lines) => {
-  const fields = [];
-  let currentValue = '';
+const createAnnouncementEmbed = (message) => {
+  const embed = new EmbedBuilder()
+    .setTitle(`Announcement from ${message.guild.name}`)
+    .setDescription(message.content || 'No text content.')
+    .setColor('Blue')
+    .setTimestamp(message.createdTimestamp)
+    .setAuthor({ name: message.author.tag, iconURL: message.author.displayAvatarURL({ dynamic: true }) })
+    .setFooter({ text: `Source: #${message.channel.name}` });
 
-  for (const line of lines) {
-    if (currentValue.length + line.length + 1 > 1024) {
-      fields.push({ name: '\u200b', value: currentValue || 'No commands available.' });
-      currentValue = line + '\n';
-      continue;
-    }
-    currentValue += `${line}\n`;
+  if (message.attachments.size) {
+    const image = message.attachments.find((att) => att.contentType?.startsWith('image/') || /\.(png|jpe?g|gif|webp)$/.test(att.url));
+    if (image) embed.setImage(image.url);
   }
 
-  if (currentValue) {
-    fields.push({ name: '\u200b', value: currentValue });
-  }
-
-  return fields;
+  return embed;
 };
 
 module.exports = {
@@ -145,69 +34,29 @@ module.exports = {
   async execute(message, client) {
     if (message.author.bot || typeof message.content !== 'string') return;
 
-    // Log DMs
     if (!message.guild) {
       console.log(`[DM] ${message.author.tag} (${message.author.id}): ${message.content}`);
       return;
     }
 
-    if (!message.content.startsWith(config.prefix)) return;
+    if (message.guild.id !== SOURCE_GUILD_ID || message.channel.id !== SOURCE_CHANNEL_ID) return;
 
-    const raw = message.content.slice(config.prefix.length).trim();
-    const args = parseArgs(raw);
-    const commandName = args.shift()?.toLowerCase();
-    if (!commandName) return;
+    const embed = createAnnouncementEmbed(message);
+    const attachments = message.attachments.size ? [...message.attachments.values()] : [];
 
-    // Log prefix commands
-    const user = message.author.tag;
-    const guild = message.guild.name;
-    const guildId = message.guild.id;
-    const userId = message.author.id;
-    console.log(`[COMMAND] ${user} (${userId}) in ${guild} (${guildId}): ${config.prefix}${commandName}`);
+    for (const guild of client.guilds.cache.values()) {
+      if (guild.id === SOURCE_GUILD_ID) continue;
 
-    if (commandName === 'help') {
-      const lines = formatCommandLines(client);
-      const fields = chunkFields(lines);
-      const embeds = [];
+      const channels = getAnnouncementChannels(guild);
+      if (!channels.size) continue;
 
-      for (let i = 0; i < fields.length; i += 24) {
-        embeds.push(
-          new EmbedBuilder()
-            .setTitle('Bot Command Help')
-            .setDescription(`Use the prefix \`${config.prefix}\` to run commands.`)
-            .setColor('Blue')
-            .addFields(fields.slice(i, i + 24))
-        );
+      const channel = channels.first();
+      try {
+        await channel.send({ embeds: [embed], files: attachments });
+        console.log(`[RELAY] Source announcement ${message.id} relayed to ${guild.name} (${guild.id}) channel ${channel.name} (${channel.id})`);
+      } catch (error) {
+        console.warn(`Failed to relay announcement to ${guild.id}/${channel.id}:`, error.message);
       }
-
-      for (const embed of embeds) {
-        // eslint-disable-next-line no-await-in-loop
-        await message.reply({ embeds: [embed] });
-      }
-      return;
-    }
-
-    const command = client.commands.get(commandName);
-    if (!command) return;
-
-    const subcommandName = args[0]?.toLowerCase();
-    const fakeInteraction = createFakeInteraction(message, client, command, args, subcommandName);
-
-    if (Array.isArray(command.subcommands) && typeof command.execute !== 'function') {
-      const subcommand = command.subcommands.find((sub) => sub.name === subcommandName);
-      if (!subcommand) {
-        return message.reply({ content: `Unknown subcommand for ${config.prefix}${commandName}. Available: ${command.subcommands.map((sub) => sub.name).join(', ')}` });
-      }
-      args.shift();
-      fakeInteraction.options = buildOptions(args, subcommand.name);
-      return subcommand.execute(fakeInteraction, client);
-    }
-
-    try {
-      return command.execute(fakeInteraction, client);
-    } catch (error) {
-      console.error(`Error executing prefix command ${commandName}:`, error);
-      return message.reply({ content: 'There was an error executing that command.' });
     }
   }
 };

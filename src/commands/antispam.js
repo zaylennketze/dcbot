@@ -79,8 +79,8 @@ module.exports = {
         }
 
         const enabled = interaction.options.getBoolean('enabled');
-        const threshold = interaction.options.getInteger('memberThreshold') || 5;
-        const timewindow = interaction.options.getInteger('timeWindow') || 30;
+        const threshold = interaction.options.getInteger('memberthreshold') || 5;
+        const timewindow = interaction.options.getInteger('timewindow') || 30;
 
         const embed = new EmbedBuilder()
           .setColor(enabled ? '#00ff00' : '#ff0000')
